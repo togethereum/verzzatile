@@ -9,7 +9,7 @@ export interface Rank {
 }
 
 export interface Cell {
-    value(): Value;
+    getValue(): Value;
 
     setValue(value: Value): void;
 
