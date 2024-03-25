@@ -3,7 +3,14 @@ export type Value = string | number;
 
 export type Dimension = string;
 
+export interface Rank {
+    dimension(): Dimension;
+    cells(): Cell[];
+}
+
 export interface Cell {
+    value(): Value;
+
     setValue(value: Value): void;
 
     negEnd(dim: Dimension): Cell | null;
@@ -12,7 +19,23 @@ export interface Cell {
 
     connect(dim: Dimension, cell: Cell): void;
 
+    disconnect(dim: Dimension, cell: Cell): void;
+
     addCell(dim: Dimension, value: Value): Cell;
+
+    posRank(): Rank;
+
+    rank(): Rank;
+
+    headCell(): Cell;
+
+    dimensions(): Dimension[];
+
+    posNeighbors(): Cell[];
+
+    negNeighbors(): Cell[];
+
+    connectingDimension(cell: Cell): Dimension | null;
 }
 
 export interface Cursor {
@@ -23,6 +46,9 @@ export interface Cursor {
     turnTo(newDim: Dimension): void;
 
     moveTo(newCell: Cell): void;
+}
 
-    toOrigin(): void;
+export interface Structure {
+    origin(): Cell;
+    dimensions(): Dimension[];
 }
