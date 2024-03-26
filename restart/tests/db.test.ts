@@ -1,5 +1,5 @@
-import {sum} from "../src/types/db";
+import {roundtripDb} from "../src/types/db";
 
-test('adds 1 + 2 to equal 3', () => {
-    expect(sum(1, 2)).toBe(3);
+test('roundtripDb', () => {
+    expect(roundtripDb('test.json', {}, 'key', 'value')).toBe('value');
 });
