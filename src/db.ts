@@ -1,13 +1,19 @@
-import {Cell, Structure} from "./types";
-import low from 'lowdb';
+import {Cell, Dimension, Rank, Structure, Value} from "./types";
+import {JSONFileSync} from 'lowdb/node'
+import {LowSync} from 'lowdb'
+
 
 export class LowDB implements Structure {
-    private db: low.LowSync<any>;
-    private originCell: Cell;
+    db: LowSync<any>;
+    originCell: Cell;
 
-    constructor(db: low.LowSync<any>) {
-        this.db = db;
-        this.originCell = new LowCell(null);
+    constructor(dbFile: string) {
+        const defaultData = {
+            cells: [],
+            dimensions: []
+        }
+        this.db = new LowSync(new JSONFileSync(dbFile), defaultData);
+        this.originCell = new LowCell(this, "origin");
     }
 
     origin(): Cell {
@@ -17,20 +23,34 @@ export class LowDB implements Structure {
     dimensions(): Dimension[] {
         return [];
     }
+
+    public createCell(value: Value): Cell {
+        return new LowCell(this, value);
+    }
 }
 
 class LowCell implements Cell {
-    private value: Value;
-    private lowDb: LowDB;
+    private readonly value: Value;
+    private readonly lowDb: LowDB;
+    private shouldSave: boolean = true;
 
     constructor(lowDb: LowDB, value: Value) {
         this.lowDb = lowDb;
         this.value = value;
     }
 
+    protected save(): void {
+        if (this.shouldSave) {
+            this.lowDb.db.write();
+        }
+    }
+
     addCell(dim: Dimension, value: Value): Cell {
-        newCell = new LowCell(this.lowDb, value);
+        this.shouldSave = false;
+        const newCell = new LowCell(this.lowDb, value);
         this.connect(dim, newCell);
+        this.shouldSave = true;
+        this.save();
         return newCell;
     }
 
@@ -38,7 +58,7 @@ class LowCell implements Cell {
     }
 
     connectingDimension(cell: Cell): Dimension | null {
-        return undefined;
+        return null;
     }
 
     dimensions(): Dimension[] {
@@ -49,11 +69,11 @@ class LowCell implements Cell {
     }
 
     headCell(): Cell {
-        return undefined;
+        return this.lowDb.originCell;
     }
 
     negEnd(dim: Dimension): Cell | null {
-        return undefined;
+        return null;
     }
 
     negNeighbors(): Cell[] {
@@ -61,7 +81,7 @@ class LowCell implements Cell {
     }
 
     posEnd(dim: Dimension): Cell | null {
-        return undefined;
+        return null;
     }
 
     posNeighbors(): Cell[] {
@@ -69,18 +89,29 @@ class LowCell implements Cell {
     }
 
     posRank(): Rank {
-        return undefined;
+        return new LowRank();
     }
 
     rank(): Rank {
-        return undefined;
+        return new LowRank();
     }
 
     setValue(value: Value): void {
     }
 
     getValue(): Value {
-        return undefined;
+        return this.value;
+    }
+
+}
+
+export class LowRank implements Rank {
+    dimension(): Dimension {
+        return 'none';
+    }
+
+    cells(): Cell[] {
+        return [];
     }
 
 }
